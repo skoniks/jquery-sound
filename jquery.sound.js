@@ -2,8 +2,8 @@
  * @author SKONIKS <vk.com/skoniks>
  * Copyright (c) 2018 SKONIKS - released under MIT License
  * Usage: var sound = $.sPlay('http://example.org/sound')
- * $.stopSound(sound); - Stops certain sound
- * $.stopSound(); - Stops all playing sounds
+ * $.sStop(sound); - Stops certain sound
+ * $.sStop(); - Stops all playing sounds
  * $.sVolume(); - Changes sounds volume
  **/
 
