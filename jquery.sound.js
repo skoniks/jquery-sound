@@ -35,7 +35,7 @@
         },
         sVolume: function() {
             var volume = arguments[0] ? arguments[0] : 1;
-            $(".sound-player").volume(volume);
+            if($(".sound-player").length) $(".sound-player").volume(volume);
         }
     });
 })(jQuery);
