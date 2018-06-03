@@ -9,6 +9,7 @@
 
 (function($) {
     $.extend({
+		sVolumeVal: 1,
         sPlay: function() {
             if (!arguments[0]) {
                 console.error("Source not selected");
@@ -21,6 +22,7 @@
                 '<embed src="' + arguments[0] + '" hidden="true" autostart="true" loop="false"/>' +
                 '</audio>'
             ).appendTo('body');
+			$audio[0].volume = $.sVolumeVal;
             $audio.on("ended", function() {
                 $audio.remove();
             });
@@ -34,8 +36,10 @@
             }
         },
         sVolume: function() {
-            var volume = arguments[0] ? arguments[0] : 1;
-            if($(".sound-player").length) $(".sound-player").volume(volume);
+			if(arguments[0] !== undefined) $.sVolumeVal = arguments[0]
+			if($(".sound-player").length) $.each($(".sound-player"), function(i, e){
+				e.volume = $.sVolumeVal;
+			});
         }
     });
 })(jQuery);
