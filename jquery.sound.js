@@ -1,70 +1,79 @@
 /**
     * @author SKONIKS <vk.com/skoniks>
     * Copyright (c) 2018 SKONIKS - released under MIT License
-    * Usage: var sound = $.sound.start('http://example.org/sound');
-    * $.sound.stop(sound); - Stop`s certain sound
-    * $.sound.stop(); - Stop`s all playing sounds
-    * $.sound.pause(sound); - Pause certain sound
-    * $.sound.pause(); - Pause all playing sounds
-    * $.sound.play(sound); - Play paused sound
-    * $.sound.play(); - Play all paused  sounds
-    * $.sound.volume(); - Get`s sounds volume
-    * $.sound.volume([0 - 1.0]); - Changes sounds volume
-    **/
+    * Usage: var sound = $.sound(url, volume [0.0->1.0], autoplay [true/false], loop [true/false], time [N sec]);
+    * Example: $.sound('http://example.org/sound', 1, 1);
+    * Commands for certain sound object:
+    * sound.play() - Play sound (if paused or autoplay off)
+    * sound.replay() - Replay sound
+    * sound pause() - Pause sound
+    * sound.stop() - Stop sound (delete element)
+    * sound.time(10) - Changes timestamp (in sec)
+    * sound.volume(0.5) - Changes volime [0.0->1.0]
+    * Commands for all sounds on page:
+    * $.sound_all.play() - Play sound (if paused or autoplay off)
+    * $.sound_all.replay() - Replay sound
+    * $.sound_all pause() - Pause sound
+    * $.sound_all.stop() - Stop sound (delete element)
+    * $.sound_all.time(10) - Changes timestamp (in sec)
+    * $.sound_all.volume(0.5) - Changes volime [0.0->1.0]
+**/
 
 (function ($) {
     'use strict';
+    class Sound {
+        constructor(source, volume, autoplay, loop, time){
+            if (source !== undefined){
+                this.id = Math.random().toString(36).slice(2);
+                this.el = $(`<audio id="${this.id}" class="jquery-sound" src="${source}"></audio>`).appendTo('body').prop('autoplay', !!autoplay).prop('loop', !!loop).on("ended", ()=>this.stop());
+                this.el[0].volume = isNaN(volume) ? 1 : Math.max(Math.min(parseFloat(volume), 1), 0), this.el[0].currentTime = isNaN(time) ? 0 : parseFloat(time);
+                $.sound_all.list[this.id] = this;
+            } else {
+                this.el = false;
+            }
+        }
+        play(){
+            !this.el || this.el[0].play();
+        }
+        replay(){
+            !this.el || this.time(0), this.play();
+        }
+        pause(){
+            !this.el || this.el[0].pause();
+        }
+        stop(){
+            !this.el || delete $.sound_all.list[this.id], this.el.remove(), this.el = false;
+        }
+        time(time){
+            !this.el || isNaN(time) || 1, this.el[0].currentTime = parseFloat(time);
+        }
+        volume(volume){
+            !this.el || isNaN(volume) || 1, this.el[0].volume = Math.max(Math.min(parseFloat(volume), 1), 0)
+        }
+    }
     $.extend({
-        sound: {
-            _volume: 1,
-            volume: function(volume) {
-                if (volume !== undefined){
-                    $.sound._volume = Math.max(Math.min(parseFloat(volume), 1), 0);
-                    if ($(".jquery-sound").length) $.each($(".jquery-sound"), function (i, e) {
-                        e.volume = $.sound._volume;
-                    });
-                }
-                return $.sound._volume;
+        sound: (source, volume, autoplay, loop, time)=>{
+            return new Sound(source, volume, autoplay, loop, time);
+        },
+        sound_all: {
+            list: {},
+            play: function(){
+                for(var i in this.list) this.list[i].play();
             },
-            start: function (source) {
-                if (source === undefined) return false;
-                var id = new Date().getTime().toString() + Math.ceil(Math.random() * 1000).toString();
-                var $audio = $(
-                    '<audio id="player_' + id + '" class="jquery-sound" autoplay="autoplay" style="display:none;">' +
-                    '<source src="' + arguments[0] + '" />' +
-                    '<embed src="' + arguments[0] + '" hidden="true" autostart="true" loop="false"/>' +
-                    '</audio>'
-                ).appendTo('body');
-                $audio[0].volume = $.sound._volume;
-                $audio.on("ended", function() {
-                    $audio.remove();
-                });
-                return $audio;
+            replay: function(){
+                for(var i in this.list) this.list[i].replay();
             },
-            stop: function (sound) {
-                if (sound === undefined) {
-                    $(".jquery-sound").remove();
-                } else {
-                    sound.remove();
-                }
+            pause: function(){
+                for(var i in this.list) this.list[i].pause();
             },
-            pause: function (sound) {
-                if (sound === undefined) {
-                    if ($(".jquery-sound").length) $.each($(".jquery-sound"), function (i, e) {
-                        e.pause();
-                    });
-                } else {
-                    sound[0].pause();
-                }
+            stop: function(){
+                for(var i in this.list) this.list[i].stop();
             },
-            play: function (sound) {
-                if (sound === undefined) {
-                    if ($(".jquery-sound").length) $.each($(".jquery-sound"), function (i, e) {
-                        e.play();
-                    });
-                } else {
-                    sound[0].play();
-                }
+            time: function(time){
+                for(var i in this.list) this.list[i].time(time);
+            },
+            volume: function(volume){
+                for(var i in this.list) this.list[i].volume(volume);
             }
         }
     });
